@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ChronoChat</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="dark">
+
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <h1>ChronoChat</h1>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Log In</button>
+    <button class="secondary" onclick="register()">Sign Up</button>
+    <p id="authMsg"></p>
+  </div>
+</div>
+
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h2>Users</h2></div>
+    <div class="sidebar-content">
+      <div id="users"></div>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="chat-header">
+      <h3 id="roomName">global</h3>
+      <button onclick="toggleTheme()">🎨</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <div class="chat-input">
+      <input id="msg" placeholder="Type message">
+      <button onclick="send()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
