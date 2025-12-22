@@ -1,47 +1,876 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ChronoChat</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue-Based Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #1e293b;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            padding: 50px 40px;
+            text-align: center;
+            background: #0f172a;
+        }
+
+        .app-logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #3b82f6;
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .app-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #1e293b;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Contacts Screen */
+        .contacts-screen {
+            display: none;
+        }
+
+        .contacts-header {
+            padding: 30px 24px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h2 {
+            color: white;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .user-details p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #64748b;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 18px 14px 48px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #e2e8f0;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .contacts-list {
+            padding: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #0f172a;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #1e293b;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .contact-item:hover {
+            transform: translateX(8px);
+            background: #334155;
+            border-color: #3b82f6;
+        }
+
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+
+        .contact-status {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .contact-arrow {
+            font-size: 20px;
+            color: #64748b;
+        }
+
+        /* Chat Screen */
+        .chat-screen {
+            display: none;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .chat-contact-info {
+            flex: 1;
+        }
+
+        .chat-contact-name {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .chat-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+        }
+
+        .toggle-status-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .toggle-status-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #0f172a;
+        }
+
+        .message-wrapper {
+            margin-bottom: 16px;
+            animation: messageAppear 0.3s ease;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper.sent {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-wrapper.received {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .message-wrapper.sent .message-bubble {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-wrapper.received .message-bubble {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #334155;
+        }
+
+        .message-text {
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 11px;
+            margin-top: 6px;
+            opacity: 0.7;
+        }
+
+        .message-status {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .queued-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 10px;
+            margin-left: 6px;
+        }
+
+        .system-message {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .system-message-text {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #60a5fa;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border: 2px solid #e0e7ff;
+            border-radius: 24px;
+            font-size: 15px;
+            resize: none;
+            max-height: 100px;
+            font-family: inherit;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #a5b4fc;
+            background: white;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn:disabled:hover {
+            transform: scale(1);
+        }
+
+        .queue-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="dark">
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <div class="app-logo">💬</div>
+            <h1 class="app-title">Queue Chat</h1>
+            <p class="app-subtitle">Reliable messaging with perfect ordering</p>
+            
+            <div class="input-group">
+                <label class="input-label">Enter your username</label>
+                <input type="text" id="usernameInput" placeholder="e.g. John Doe" maxlength="20">
+            </div>
+            
+            <button class="btn-primary" id="continueBtn">Continue</button>
+        </div>
 
-<div class="login-page" id="loginPage">
-  <div class="login-box">
-    <h1>ChronoChat</h1>
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">Log In</button>
-    <button class="secondary" onclick="register()">Sign Up</button>
-    <p id="authMsg"></p>
-  </div>
-</div>
+        <!-- Contacts Screen -->
+        <div class="contacts-screen" id="contactsScreen">
+            <div class="contacts-header">
+                <div class="user-info">
+                    <div class="user-avatar-large" id="userAvatarLarge">U</div>
+                    <div class="user-details">
+                        <h2 id="loggedUsername">User</h2>
+                        <p>Select a contact to start chatting</p>
+                    </div>
+                </div>
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search contacts...">
+                </div>
+            </div>
+            
+            <div class="contacts-list" id="contactsList">
+                <div class="contact-item" data-contact="alice" data-initial="A">
+                    <div class="contact-avatar">A</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Alice Johnson</div>
+                        <div class="contact-status">Available to chat</div>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+                
+                <div class="contact-item" data-contact="bob" data-initial="B">
+                    <div class="contact-avatar">B</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Bob Smith</div>
+                        <div class="contact-status">Available to chat</div>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+                
+                <div class="contact-item" data-contact="charlie" data-initial="C">
+                    <div class="contact-avatar">C</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Charlie Davis</div>
+                        <div class="contact-status">Available to chat</div>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+                
+                <div class="contact-item" data-contact="diana" data-initial="D">
+                    <div class="contact-avatar">D</div>
+                    <div class="contact-info">
+                        <div class="contact-name">Diana Martinez</div>
+                        <div class="contact-status">Available to chat</div>
+                    </div>
+                    <div class="contact-arrow">›</div>
+                </div>
+            </div>
+        </div>
 
-<div class="app hidden" id="app">
-  <div class="sidebar">
-    <div class="sidebar-header"><h2>Users</h2></div>
-    <div class="sidebar-content">
-      <div id="users"></div>
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chatScreen">
+            <div class="chat-header">
+                <button class="back-btn" id="backBtn">←</button>
+                <div class="chat-contact-info">
+                    <div class="chat-contact-name" id="chatContactName">Contact</div>
+                    <div class="chat-status-badge">
+                        <span class="status-indicator" id="statusIndicator"></span>
+                        <span id="statusText">Online</span>
+                    </div>
+                </div>
+                <button class="toggle-status-btn" id="toggleStatusBtn" title="Toggle Online/Offline">
+                    ●
+                </button>
+            </div>
+            
+            <div class="messages-area" id="messagesArea"></div>
+            
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message..."
+                        rows="1"
+                        maxlength="500"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn">→</button>
+                </div>
+                <div class="queue-info" id="queueInfo"></div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="chat">
-    <div class="chat-header">
-      <h3 id="roomName">global</h3>
-      <button onclick="toggleTheme()">🎨</button>
-    </div>
+    <script>
+        // Message Queue Class
+        class MessageQueue {
+            constructor() {
+                this.queue = [];
+                this.messageIdCounter = 0;
+            }
 
-    <div id="messages"></div>
+            enqueue(sender, receiver, text, status = 'sent') {
+                const message = {
+                    id: this.messageIdCounter++,
+                    sender: sender,
+                    receiver: receiver,
+                    text: text,
+                    timestamp: new Date().toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    }),
+                    status: status
+                };
+                this.queue.push(message);
+                return message;
+            }
 
-    <div class="chat-input">
-      <input id="msg" placeholder="Type message">
-      <button onclick="send()">➤</button>
-    </div>
-  </div>
-</div>
+            getConversation(user1, user2) {
+                return this.queue.filter(msg => 
+                    (msg.sender === user1 && msg.receiver === user2) ||
+                    (msg.sender === user2 && msg.receiver === user1)
+                );
+            }
 
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-<script src="/static/app.js"></script>
+            getQueuedMessages(sender, receiver) {
+                return this.queue.filter(msg => 
+                    msg.sender === sender && 
+                    msg.receiver === receiver && 
+                    msg.status === 'queued'
+                );
+            }
+
+            sendQueuedMessages(sender, receiver) {
+                const queuedMessages = [];
+                this.queue.forEach(msg => {
+                    if (msg.sender === sender && 
+                        msg.receiver === receiver && 
+                        msg.status === 'queued') {
+                        msg.status = 'sent';
+                        queuedMessages.push(msg);
+                    }
+                });
+                return queuedMessages;
+            }
+        }
+
+        // Initialize
+        const messageQueue = new MessageQueue();
+        let currentUsername = '';
+        let currentContact = '';
+        let currentContactInitial = '';
+        let isOnline = true;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const contactsScreen = document.getElementById('contactsScreen');
+        const chatScreen = document.getElementById('chatScreen');
+        const usernameInput = document.getElementById('usernameInput');
+        const continueBtn = document.getElementById('continueBtn');
+        const loggedUsername = document.getElementById('loggedUsername');
+        const searchInput = document.getElementById('searchInput');
+        const contactsList = document.getElementById('contactsList');
+        const backBtn = document.getElementById('backBtn');
+        const chatContactName = document.getElementById('chatContactName');
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const toggleStatusBtn = document.getElementById('toggleStatusBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const queueInfo = document.getElementById('queueInfo');
+        const userAvatarLarge = document.getElementById('userAvatarLarge');
+
+        // Login
+        continueBtn.addEventListener('click', handleLogin);
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        function handleLogin() {
+            const username = usernameInput.value.trim();
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            currentUsername = username;
+            loggedUsername.textContent = username;
+            userAvatarLarge.textContent = username.charAt(0).toUpperCase();
+            loginScreen.classList.add('hidden');
+            contactsScreen.style.display = 'block';
+        }
+
+        // Search contacts
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const contacts = document.querySelectorAll('.contact-item');
+            contacts.forEach(contact => {
+                const name = contact.querySelector('.contact-name').textContent.toLowerCase();
+                contact.style.display = name.includes(searchTerm) ? 'flex' : 'none';
+            });
+        });
+
+        // Open chat
+        contactsList.addEventListener('click', (e) => {
+            const contactItem = e.target.closest('.contact-item');
+            if (!contactItem) return;
+            
+            currentContact = contactItem.dataset.contact;
+            currentContactInitial = contactItem.dataset.initial;
+            const contactName = contactItem.querySelector('.contact-name').textContent;
+            
+            chatContactName.textContent = contactName;
+            contactsScreen.style.display = 'none';
+            chatScreen.style.display = 'flex';
+            
+            loadMessages();
+            messageInput.focus();
+        });
+
+        // Back to contacts
+        backBtn.addEventListener('click', () => {
+            chatScreen.style.display = 'none';
+            contactsScreen.style.display = 'block';
+            messagesArea.innerHTML = '';
+            currentContact = '';
+        });
+
+        // Toggle online/offline
+        toggleStatusBtn.addEventListener('click', () => {
+            isOnline = !isOnline;
+            updateOnlineStatus();
+            
+            if (isOnline) {
+                // Send all queued messages
+                const queuedMessages = messageQueue.sendQueuedMessages(currentUsername, currentContact);
+                if (queuedMessages.length > 0) {
+                    addSystemMessage(`✅ Sent ${queuedMessages.length} queued message(s)`);
+                    loadMessages();
+                }
+            }
+        });
+
+        function updateOnlineStatus() {
+            if (isOnline) {
+                statusIndicator.classList.remove('offline');
+                statusText.textContent = 'Online';
+                toggleStatusBtn.textContent = '●';
+                toggleStatusBtn.style.color = '#22c55e';
+                queueInfo.textContent = '';
+            } else {
+                statusIndicator.classList.add('offline');
+                statusText.textContent = 'Offline';
+                toggleStatusBtn.textContent = '○';
+                toggleStatusBtn.style.color = '#ef4444';
+                queueInfo.textContent = 'You are offline. Messages will be queued.';
+            }
+        }
+
+        // Send message
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const status = isOnline ? 'sent' : 'queued';
+            const message = messageQueue.enqueue(currentUsername, currentContact, text, status);
+            
+            displayMessage(message, true);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            if (!isOnline) {
+                const queuedCount = messageQueue.getQueuedMessages(currentUsername, currentContact).length;
+                queueInfo.textContent = `${queuedCount} message(s) queued. Go online to send.`;
+            }
+        }
+
+        function loadMessages() {
+            messagesArea.innerHTML = '';
+            const conversation = messageQueue.getConversation(currentUsername, currentContact);
+            conversation.forEach(msg => {
+                const isSent = msg.sender === currentUsername;
+                displayMessage(msg, isSent);
+            });
+            scrollToBottom();
+        }
+
+        function displayMessage(message, isSent) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${isSent ? 'sent' : 'received'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            const text = document.createElement('div');
+            text.className = 'message-text';
+            text.textContent = message.text;
+            
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = message.timestamp;
+            
+            bubble.appendChild(text);
+            bubble.appendChild(time);
+            
+            if (isSent && message.status === 'queued') {
+                const status = document.createElement('div');
+                status.className = 'message-status';
+                status.innerHTML = '<span class="queued-badge">⏱ Queued</span>';
+                bubble.appendChild(status);
+            }
+            
+            wrapper.appendChild(bubble);
+            messagesArea.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function addSystemMessage(text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'system-message';
+            wrapper.innerHTML = `<div class="system-message-text">ℹ ${text}</div>`;
+            messagesArea.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // Initialize
+        updateOnlineStatus();
+    </script>
 </body>
 </html>
