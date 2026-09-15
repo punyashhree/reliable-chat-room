@@ -5,6 +5,8 @@ This project is implemented to use DSA concepts of queues. It holds the messages
 #Team-members
 Punyashree G, Ritvik Singh, Samikcha Thapa
 
+Built in a 4 hour college hackathon, as part of an assignment
+
 
 #technologies-used
 
